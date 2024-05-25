@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Birth Chart",
+            "type": "dart",
+            "request": "launch",
+            "program": "example/birthchart.dart",
+            "args": [
+                "--datetime",
+                "1965-02-01T11:46",
+                "--lat",
+                "55N45",
+                "--lng",
+                "37E35",
+                "--houses",
+                "Regio-Montanus"
+            ]
+        }
+    ]
+}

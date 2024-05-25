@@ -1,0 +1,23 @@
+name: stardart
+description: A starting point for Dart libraries or applications.
+version: 1.0.0
+repository: https://github.com/ilbagatto/stardart
+publish_to: none
+
+environment:
+  sdk: ^3.3.4
+
+# Add regular dependencies here.
+dependencies:
+  vector_math: ^2.1.4
+  intl: ^0.19.0
+  sprintf: ^7.0.0
+  astropc:
+    git:
+      url: https://github.com/ilbagatto/astropc.git
+      ref: master
+  args: ^2.5.0
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.24.0
