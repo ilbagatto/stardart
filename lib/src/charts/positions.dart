@@ -17,6 +17,8 @@ class CelestialPositionsBuilder {
     _spheraTomorrow = CelestialSphera(_djd + 1);
   }
 
+  double get djd => _djd;
+
   ChartObjectInfo calculateSun(List<double> cusps) {
     final sunToday = sun.apparent(_djd,
         dpsi: _sphera.nutation.deltaPsi, ignoreLightTravel: false);

@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:astropc/heliocentric.dart';
+import 'package:astropc/mathutils.dart';
+import 'package:astropc/timeutils.dart';
 import 'package:stardart/houses.dart';
 import '../../aspects.dart';
 import 'positions.dart';
@@ -78,6 +80,18 @@ class BaseChart extends Chart {
         AspectsDetector(orbsMethod: orbsMethod, typeFlags: 0x1));
   }
 
+  factory BaseChart.forNow(
+      {String? name,
+      required Point<double> geoCoords,
+      ChartSettings settings = defaultChartSettings}) {
+    final now = DateTime.now().toUtc();
+    final dh =
+        now.day.toDouble() + ddd(now.hour, now.minute, now.second.toDouble());
+    final djd = julDay(now.year, now.month, dh);
+    return BaseChart.forDJDAndPlace(
+        name: name, djd: djd, geoCoords: geoCoords, settings: settings);
+  }
+
   @override
   List<AspectInfo> aspectsTo(ChartObjectType id) {
     final obj = objects[id]!;
@@ -118,4 +132,5 @@ class BaseChart extends Chart {
 
   HouseSystem get houseSystem => _housesBuilder.system;
   OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
+  double get djd => _positionsBuilder.djd;
 }
