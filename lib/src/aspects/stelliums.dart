@@ -9,7 +9,7 @@ import 'aspects.dart';
 ///
 /// Technicaly that means partitioning of ecliptic positions with regard to
 /// their angular distances.
-Iterable<List<AspectedPoint>> iterStelliums(List<AspectedPoint> positions,
+Iterable<List<AspectedPoint>> iterStelliums(Iterable<AspectedPoint> positions,
     [double gap = 10]) sync* {
   final sorted = List<AspectedPoint>.from(positions);
   sorted.sort((a, b) => a.longitude.compareTo(b.longitude));
