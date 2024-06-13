@@ -27,3 +27,7 @@ enum ZodiacSign {
   final String name;
   final int idx;
 }
+
+enum Triplicities { fire, earth, air, water }
+
+enum Quadruplicities { cardinal, fixed, mutable }
