@@ -131,4 +131,5 @@ class BaseChart extends Chart {
   HouseSystem get houseSystem => _housesBuilder.system;
   OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
   double get djd => _positionsBuilder.djd;
+  int get aspectTypes => _aspectsDetector.typeFlags;
 }
