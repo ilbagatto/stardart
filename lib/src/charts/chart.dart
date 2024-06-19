@@ -3,13 +3,12 @@ import 'package:astropc/heliocentric.dart';
 import 'package:astropc/mathutils.dart';
 import 'package:astropc/timeutils.dart';
 import 'package:stardart/houses.dart';
+import '../common.dart';
 import '../../aspects.dart';
 import 'positions.dart';
 import '../houses.dart';
 
 // enum ChartObjectType { luminary, planet, point }
-
-enum ChartObjectType { moo, sun, mer, ven, mar, jup, sat, ura, nep, plu, nnd }
 
 typedef Place = ({String name, Point coords});
 
@@ -28,7 +27,6 @@ const defaultChartSettings = (
 );
 
 typedef ChartObjectInfo = ({
-  String name,
   EclipticPosition position,
   double dailyMotion,
   ChartObjectType type,
@@ -100,10 +98,10 @@ class BaseChart extends Chart {
       return _aspects![obj.type]!;
     }
 
-    final source = (name: obj.name, longitude: obj.position.lambda);
+    final source = (name: obj.type.name, longitude: obj.position.lambda);
     final others = objects.keys
         .map((k) => objects[k]!)
-        .map((o) => (name: o.name, longitude: o.position.lambda))
+        .map((o) => (name: o.type.name, longitude: o.position.lambda))
         .where((o) => o.name != source.name)
         .toList();
     final res = _aspectsDetector.iterAspects(source, others).toList();

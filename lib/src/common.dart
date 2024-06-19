@@ -20,9 +20,7 @@ enum ZodiacSign {
   const ZodiacSign(this.idx, this.name);
 
   @override
-  String toString() {
-    return name;
-  }
+  String toString() => name;
 
   final String name;
   final int idx;
@@ -31,3 +29,53 @@ enum ZodiacSign {
 enum Triplicities { fire, earth, air, water }
 
 enum Quadruplicities { cardinal, fixed, mutable }
+
+enum ChartObjectType {
+  moo("Moon"),
+  sun("Sun"),
+  mer("Mercury"),
+  ven("Venus"),
+  mar("Mars"),
+  jup("Jupiter"),
+  sat("Saturn"),
+  ura("Uranus"),
+  nep("Neptune"),
+  plu("Pluto"),
+  nnd("Lunar Node");
+
+  const ChartObjectType(this.name);
+
+  @override
+  String toString() => name;
+
+  static ChartObjectType forName(String name) {
+    switch (name.toLowerCase()) {
+      case 'moon':
+        return moo;
+      case 'sun':
+        return sun;
+      case 'mercury':
+        return mer;
+      case 'venus':
+        return ven;
+      case 'mars':
+        return mar;
+      case 'jupiter':
+        return jup;
+      case 'saturn':
+        return sat;
+      case 'uranus':
+        return ura;
+      case 'neptune':
+        return nep;
+      case 'pluto':
+        return plu;
+      case 'lunar node':
+        return nnd;
+      default:
+        throw ('Unknown object: $name');
+    }
+  }
+
+  final String name;
+}

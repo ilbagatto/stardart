@@ -6,6 +6,7 @@ import 'package:sprintf/sprintf.dart';
 import 'package:astropc/timeutils.dart';
 import 'package:intl/intl.dart';
 import 'package:stardart/chart.dart';
+import 'package:stardart/common.dart';
 import 'package:stardart/houses.dart';
 import 'package:stardart/src/utils/textutils.dart';
 
@@ -68,7 +69,7 @@ void displayPlanets(BaseChart chart) {
     final pos = obj.position;
     final rx = obj.dailyMotion < 0 ? 'r' : ' ';
     String row = sprintf("%-12s %s %s | %s | %2d", [
-      obj.name,
+      obj.type.name,
       rx,
       formatLongitude(pos.lambda),
       formatLatitude(pos.beta),
@@ -86,7 +87,7 @@ void displayAspects(BaseChart chart) {
         .map((a) => '${a.aspect.briefName} ${a.target.name.substring(0, 3)}')
         .toList();
     final cols = asps.isNotEmpty ? asps.join(' ') : ' - ';
-    String row = sprintf('%-12s %s', [obj.name, cols]);
+    String row = sprintf('%-12s %s', [obj.type.name, cols]);
     print(row);
   }
 }
@@ -97,7 +98,7 @@ void displayHouses(BaseChart chart) {
     final objs = ChartObjectType.values
         .map((id) => chart.objects[id])
         .where((o) => o!.house == i)
-        .map((o) => o!.name.substring(0, 3))
+        .map((o) => o!.type.name.substring(0, 3))
         .join(', ');
     final row = sprintf('%2d. %s | %s', [i + 1, formatLongitude(x), objs]);
     print(row);

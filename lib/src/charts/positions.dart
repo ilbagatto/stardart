@@ -1,9 +1,9 @@
 import 'package:astropc/heliocentric.dart';
 import 'package:astropc/sun.dart' as sun;
 import 'package:astropc/moon.dart' as moon;
-import 'package:stardart/chart.dart';
-import 'package:stardart/houses.dart';
-import 'package:stardart/src/aspects/angles.dart';
+import '../common.dart';
+import '../houses.dart';
+import '../aspects/angles.dart';
 import 'chart.dart';
 
 class CelestialPositionsBuilder {
@@ -26,7 +26,6 @@ class CelestialPositionsBuilder {
         dpsi: _spheraTomorrow.nutation.deltaPsi, ignoreLightTravel: false);
 
     return (
-      name: 'Sun',
       type: ChartObjectType.sun,
       dailyMotion: diffAngle(sunToday.phi, sunTomorrow.phi),
       house: inHouse(sunToday.phi, cusps),
@@ -37,7 +36,6 @@ class CelestialPositionsBuilder {
   ChartObjectInfo calculateMoon(List<double> cusps) {
     final moo = moon.apparent(_djd, dpsi: _sphera.nutation.deltaPsi);
     return (
-      name: 'Moon',
       type: ChartObjectType.moo,
       dailyMotion: moo.motion,
       house: inHouse(moo.lambda, cusps),
@@ -49,7 +47,6 @@ class CelestialPositionsBuilder {
     final lngToday = moon.lunarNode(_djd, trueNode: _trueNode);
     final lngTomorrow = moon.lunarNode(_djd + 1, trueNode: _trueNode);
     return (
-      name: 'Lunar Node',
       type: ChartObjectType.nnd,
       dailyMotion: diffAngle(lngToday, lngTomorrow),
       house: inHouse(lngToday, cusps),
@@ -63,7 +60,6 @@ class CelestialPositionsBuilder {
     final posToday = pla.geocentricPosition(_sphera);
     final posTomorrow = pla.geocentricPosition(_spheraTomorrow);
     return (
-      name: pla.name,
       type: type,
       dailyMotion: diffAngle(posToday.lambda, posTomorrow.lambda),
       house: inHouse(posToday.lambda, cusps),

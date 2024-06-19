@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:test/test.dart';
+import 'package:stardart/common.dart';
 import 'package:stardart/chart.dart';
 
 const delta = 1e-6;
