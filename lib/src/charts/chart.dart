@@ -50,6 +50,9 @@ abstract class Chart {
 
   /// List of 12 houses cusps
   List<double> get houses;
+  HouseSystem get houseSystem;
+  OrbsMethod get orbsMethod;
+  int get aspectTypes;
 }
 
 /// Birth Chart, Radix, Natal Chart...
