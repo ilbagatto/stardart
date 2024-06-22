@@ -77,8 +77,12 @@ class BaseChart extends Chart {
     HousesBuilder housesBuilder =
         HousesBuilder.getBuilder(settings.houses, djd, geoCoords);
     final orbsMethod = OrbsMethod.getInstance(settings.orbs);
-    return BaseChart(name, CelestialPositionsBuilder(djd), housesBuilder,
-        AspectsDetector(orbsMethod: orbsMethod, typeFlags: 0x1));
+    return BaseChart(
+        name,
+        CelestialPositionsBuilder(djd),
+        housesBuilder,
+        AspectsDetector(
+            orbsMethod: orbsMethod, typeFlags: settings.aspectTypes));
   }
 
   factory BaseChart.forNow(
