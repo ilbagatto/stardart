@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:stardart/chart.dart';
 import 'package:stardart/common.dart';
 import 'package:stardart/houses.dart';
-import 'package:stardart/src/utils/textutils.dart';
+import 'package:stardart/utils.dart';
 
 final dateTimeFormatter = DateFormat('yyyy-MM-dd HH:mm');
 final geoLatRegexp = RegExp(
