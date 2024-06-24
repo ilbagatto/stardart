@@ -63,9 +63,11 @@ class BaseChart extends Chart {
   final AspectsDetector _aspectsDetector;
   final HousesBuilder _housesBuilder;
   final CelestialPositionsBuilder _positionsBuilder;
+  final double _djd;
+  final Point<double> _geoCoords;
 
-  BaseChart(super._name, this._positionsBuilder, this._housesBuilder,
-      this._aspectsDetector);
+  BaseChart(super._name, this._djd, this._geoCoords, this._positionsBuilder,
+      this._housesBuilder, this._aspectsDetector);
 
   factory BaseChart.forDJDAndPlace(
       {String? name,
@@ -79,6 +81,8 @@ class BaseChart extends Chart {
     final orbsMethod = OrbsMethod.getInstance(settings.orbs);
     return BaseChart(
         name,
+        djd,
+        geoCoords,
         CelestialPositionsBuilder(djd),
         housesBuilder,
         AspectsDetector(
@@ -140,7 +144,8 @@ class BaseChart extends Chart {
 
   @override
   OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
-  double get djd => _positionsBuilder.djd;
+  double get djd => _djd;
+  Point<double> get geoCoords => _geoCoords;
 
   @override
   int get aspectTypes => _aspectsDetector.typeFlags;
