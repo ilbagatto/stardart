@@ -15,3 +15,15 @@ String formatLatitude(double x) {
   final sgn = x < 0 ? 'N' : 'S';
   return sprintf('%02d:%02d %s', [vals.$1, vals.$2, sgn]);
 }
+
+String formatGeoLat(double x) {
+  final dir = x < 0 ? 'S' : 'N';
+  final sexadecimal = dms(x);
+  return sprintf('%02d%s%02d', [sexadecimal.$1, dir, sexadecimal.$2]);
+}
+
+String formatGeoLon(double x) {
+  final dir = x < 0 ? 'E' : 'W';
+  final sexadecimal = dms(x);
+  return sprintf('%03d%s%02d', [sexadecimal.$1, dir, sexadecimal.$2]);
+}
