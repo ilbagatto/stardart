@@ -18,12 +18,12 @@ String formatLatitude(double x) {
 
 String formatGeoLat(double x) {
   final dir = x < 0 ? 'S' : 'N';
-  final sexadecimal = dms(x);
+  final sexadecimal = dms(x.abs());
   return sprintf('%02d%s%02d', [sexadecimal.$1, dir, sexadecimal.$2]);
 }
 
 String formatGeoLon(double x) {
   final dir = x < 0 ? 'E' : 'W';
-  final sexadecimal = dms(x);
+  final sexadecimal = dms(x.abs());
   return sprintf('%03d%s%02d', [sexadecimal.$1, dir, sexadecimal.$2]);
 }
