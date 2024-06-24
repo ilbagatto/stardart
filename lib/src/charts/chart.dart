@@ -135,8 +135,13 @@ class BaseChart extends Chart {
   // HousesBuilder get housesBuilder => _housesBuilder;
   // CelestialPositionsBuilder get positionsBuilder => _positionsBuilder;
 
+  @override
   HouseSystem get houseSystem => _housesBuilder.system;
+
+  @override
   OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
   double get djd => _positionsBuilder.djd;
+
+  @override
   int get aspectTypes => _aspectsDetector.typeFlags;
 }
