@@ -1,8 +1,10 @@
 import 'dart:math';
 import 'package:astropc/heliocentric.dart';
 import 'package:astropc/mathutils.dart';
-import 'package:astropc/timeutils.dart';
+import 'package:astropc/misc.dart' as misc;
+import 'package:astropc/timeutils.dart' as timeutils;
 import 'package:stardart/houses.dart';
+import 'package:vector_math/vector_math.dart';
 import '../common.dart';
 import '../../aspects.dart';
 import 'positions.dart';
@@ -60,45 +62,61 @@ class BaseChart extends Chart {
   Map<ChartObjectType, List<AspectInfo>>? _aspects;
   Map<ChartObjectType, ChartObjectInfo>? _objects;
   List<double>? _houses;
-  final AspectsDetector _aspectsDetector;
-  final HousesBuilder _housesBuilder;
-  final CelestialPositionsBuilder _positionsBuilder;
-  final double _djd;
-  final Point<double> _geoCoords;
+  late AspectsDetector _aspectsDetector;
+  late HousesBuilder _housesBuilder;
+  late CelestialPositionsBuilder _positionsBuilder;
+  final ChartSettings settings;
 
-  BaseChart(super._name, this._djd, this._geoCoords, this._positionsBuilder,
-      this._housesBuilder, this._aspectsDetector);
+  /// Julian date since epoch 1900.0
+  final double djd;
 
-  factory BaseChart.forDJDAndPlace(
-      {String? name,
-      required double djd,
+  /// Geographical coordinates
+  final Point<double> geoCoords;
+  late double _t;
+  late double _deltaT;
+  late misc.NutationRecord _nutation;
+  late double _eps;
+  late double _lst;
+
+  BaseChart(super._name,
+      {required this.djd,
+      required this.geoCoords,
+      this.settings = defaultChartSettings}) {
+    _deltaT = timeutils.deltaT(djd);
+    _t = djd / timeutils.daysPerCent;
+    _nutation = misc.nutation(_t);
+    _eps = misc.obliquity(djd, deps: _nutation.deltaEps);
+    _lst = timeutils.djdToSidereal(djd, lng: geoCoords.x);
+
+    _housesBuilder = HousesBuilder.getBuilder(settings.houses,
+        eps: radians(eps),
+        ramc: radians(lst * 15),
+        theta: radians(geoCoords.y));
+    _aspectsDetector = AspectsDetector(
+        orbsMethod: OrbsMethod.getInstance(settings.orbs),
+        typeFlags: settings.aspectTypes);
+    _positionsBuilder = CelestialPositionsBuilder(djd + _deltaT / 86400.0);
+  }
+
+  factory BaseChart.forDateTime(
+      {String name = 'New Chart',
+      required DateTime dt,
       required Point<double> geoCoords,
       ChartSettings settings = defaultChartSettings}) {
-    name ??= 'Chart for $djd';
-
-    HousesBuilder housesBuilder =
-        HousesBuilder.getBuilder(settings.houses, djd, geoCoords);
-    final orbsMethod = OrbsMethod.getInstance(settings.orbs);
-    return BaseChart(
-        name,
-        djd,
-        geoCoords,
-        CelestialPositionsBuilder(djd),
-        housesBuilder,
-        AspectsDetector(
-            orbsMethod: orbsMethod, typeFlags: settings.aspectTypes));
+    final ut = dt.toUtc();
+    final dh = ut.day.toDouble() +
+        ddd(ut.hour, ut.minute, ut.second.toDouble()) / 24.0;
+    final djd = timeutils.julDay(ut.year, ut.month, dh);
+    return BaseChart(name, djd: djd, geoCoords: geoCoords, settings: settings);
   }
 
   factory BaseChart.forNow(
-      {String? name,
+      {String name = 'New Chart',
       required Point<double> geoCoords,
       ChartSettings settings = defaultChartSettings}) {
-    final now = DateTime.now().toUtc();
-    final dh =
-        now.day.toDouble() + ddd(now.hour, now.minute, now.second.toDouble());
-    final djd = julDay(now.year, now.month, dh);
-    return BaseChart.forDJDAndPlace(
-        name: name, djd: djd, geoCoords: geoCoords, settings: settings);
+    final now = DateTime.now();
+    return BaseChart.forDateTime(
+        name: name, dt: now, geoCoords: geoCoords, settings: settings);
   }
 
   @override
@@ -144,9 +162,20 @@ class BaseChart extends Chart {
 
   @override
   OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
-  double get djd => _djd;
-  Point<double> get geoCoords => _geoCoords;
 
+  /// Nutation in obliquity and longitude
+  misc.NutationRecord get nutation => _nutation;
+
+  /// Obliquity of the Ecliptic, arc-degrees
+  double get eps => _eps;
+
+  /// Local true sidereal time
+  double get lst => _lst;
+
+  /// Approximate Delta-T in seconds
+  double get deltaT => _deltaT;
+
+  /// Binary combination of aspect types flags
   @override
   int get aspectTypes => _aspectsDetector.typeFlags;
 }

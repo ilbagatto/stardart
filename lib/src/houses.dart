@@ -15,8 +15,6 @@ library;
 
 import 'dart:math';
 import 'package:astropc/mathutils.dart';
-import 'package:astropc/misc.dart';
-import 'package:astropc/timeutils.dart';
 import 'package:vector_math/vector_math.dart';
 
 import 'points.dart';
@@ -75,26 +73,42 @@ const r150 = 2.6179938779914944;
 abstract class HousesBuilder {
   final HouseSystem _system;
 
+  /// Obliquity of the eclipic
+  final double? eps;
+
+  /// Right Ascension of the Meridian, radians
+  final double? ramc;
+
   /// Returns cusps 0..11, in arc-degrees
   List<double> calculateCusps();
 
-  HousesBuilder(this._system);
+  HousesBuilder(this._system, {this.ramc, this.eps});
 
-  static HousesBuilder getBuilder(
-      HouseSystem system, double djd, Point<double> geoCoords) {
+  static HousesBuilder getBuilder(HouseSystem system,
+      {double? ramc, double? eps, double? theta}) {
     if (system.isQuadrant) {
-      return QuadrantSystem.forTimeAndPlace(system, djd, geoCoords);
+      assert(ramc != null, 'Expected non-nullable ramc value');
+      assert(eps != null, 'Expected non-nullable eps value');
+      assert(theta != null, 'Expected non-nullable theta value');
+      return QuadrantSystem.create(system,
+          ramc: ramc!, eps: eps!, theta: theta!);
     }
 
     switch (system) {
       case HouseSystem.morinus:
-        return Morinus.fromTimeAndLongitude(djd, geoCoords.x);
+        assert(ramc != null, 'Expected non-nullable ramc value');
+        return Morinus(ramc!, eps);
       case HouseSystem.equalSignCusp:
         return Equal.signCusp();
       case HouseSystem.equalAsc:
-        return Equal.fromAsc(djd, geoCoords);
+        assert(ramc != null, 'Expected non-nullable ramc value');
+        assert(eps != null, 'Expected non-nullable eps value');
+        assert(theta != null, 'Expected non-nullable theta value');
+        return Equal.fromAsc(ramc: ramc!, eps: eps!, theta: theta!);
       case HouseSystem.equalMC:
-        return Equal.fromMC(djd, geoCoords);
+        assert(ramc != null, 'Expected non-nullable ramc value');
+        assert(eps != null, 'Expected non-nullable eps value');
+        return Equal.fromMC(ramc: ramc!, eps: eps!);
       default:
         throw UnsupportedError("Unknown houses system: $system");
     }
@@ -108,30 +122,32 @@ abstract class HousesBuilder {
 /// Most of them fail at high geographical latitudes.
 /// In such cases cusps function will raise runtime error.
 abstract class QuadrantSystem extends HousesBuilder {
-  final double _ramc;
-  final double _eps;
-  final double _theta;
-  final double _asc;
-  final double _mc;
+  /// Geographical latitude, radians
+  final double theta;
 
-  // List<double> _cusps = List.empty(growable: true);
-  // final List<double> _cusps = List.filled(12, 0);
+  /// Ascendant in radians
+  final double asc;
 
-  QuadrantSystem(
-      super._system, this._ramc, this._eps, this._theta, this._asc, this._mc) {
-    if (_theta.abs() > r90 - _eps.abs()) {
+  /// Medium Coeli in radians
+  final double mc;
+
+  QuadrantSystem(super._system,
+      {required super.ramc,
+      required super.eps,
+      required this.theta,
+      required this.asc,
+      required this.mc}) {
+    if (theta.abs() > r90 - eps!.abs()) {
       throw 'This system fails at high latitudes';
     }
   }
 
-  factory QuadrantSystem.forTimeAndPlace(
-      HouseSystem system, djd, Point<double> geoCoords) {
-    final theta = radians(geoCoords.y);
-    final lst = djdToSidereal(djd, lng: geoCoords.x);
-    final ramc = radians(lst * 15);
-    final t = djd / daysPerCent;
-    final nu = nutation(t);
-    final eps = radians(obliquity(djd, deps: nu.deltaEps));
+  /// Factory method for Quadrant-based systems.
+  /// [ramc] - Right Ascention of the Meridian, in radians.
+  /// [eps] - obliquity of the Ecliptic, in radians.
+  /// [theta] - geographical latitude, in radians.
+  factory QuadrantSystem.create(HouseSystem system,
+      {required double ramc, required double eps, required double theta}) {
     final asc = ascendant(ramc, eps, theta);
     final mc = midheaven(ramc, eps);
 
@@ -152,21 +168,6 @@ abstract class QuadrantSystem extends HousesBuilder {
         throw UnsupportedError("'$system' is not a Quadrant system");
     }
   }
-
-  /// Medium Coeli in radians
-  double get mc => _mc;
-
-  /// Ascendant in radians
-  double get asc => _asc;
-
-  /// Right Ascension of the Meridian, radians
-  double get ramc => _ramc;
-
-  /// Obliquity of the eclipic
-  double get eps => _eps;
-
-  /// Geographical latitude, radians
-  double get theta => _theta;
 
   List<double> buildCusps(List<double> base) {
     /// base are longitudes of cusps 11, 12, 2, 3, in radians
@@ -196,7 +197,8 @@ class Koch extends QuadrantSystem {
       required double theta,
       required double asc,
       required double mc})
-      : super(HouseSystem.koch, ramc, eps, theta, asc, mc) {
+      : super(HouseSystem.koch,
+            ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc) {
     final tnThe = tan(theta);
     final snEps = sin(eps);
     final snMc = sin(mc);
@@ -208,7 +210,7 @@ class Koch extends QuadrantSystem {
 
   @override
   List<double> calculateCusps() {
-    final base = _offsets.map((x) => ascendant(ramc + x, eps, theta));
+    final base = _offsets.map((x) => ascendant(ramc! + x, eps!, theta));
     return buildCusps(base.toList());
   }
 }
@@ -231,13 +233,14 @@ class Placidus extends QuadrantSystem {
       required double theta,
       required double asc,
       required double mc})
-      : super(HouseSystem.placidus, ramc, eps, theta, asc, mc) {
+      : super(HouseSystem.placidus,
+            ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc) {
     _csEps = cos(eps);
     _tt = tan(theta) * tan(eps);
   }
 
   double calcCusp(int i, double f, double x0) {
-    final [k, r] = (i == 10 || i == 11) ? [-1, ramc] : [1, ramc + pi];
+    final [k, r] = (i == 10 || i == 11) ? [-1, ramc!] : [1, ramc! + pi];
 
     nextX(double lastX) {
       var x = r - k * (acos(k * sin(lastX) * _tt)) / f;
@@ -248,7 +251,7 @@ class Placidus extends QuadrantSystem {
       }
     }
 
-    final l = nextX(x0 + ramc);
+    final l = nextX(x0 + ramc!);
     return reduceRad(atan2(sin(l), _csEps * cos(l)));
   }
 
@@ -268,14 +271,15 @@ class Regiomontanus extends QuadrantSystem {
       required double theta,
       required double asc,
       required double mc})
-      : super(HouseSystem.regioMontanus, ramc, eps, theta, asc, mc) {
+      : super(HouseSystem.regioMontanus,
+            ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc) {
     _tnThe = tan(theta);
   }
 
   double calcCusp(h) {
-    final rh = _ramc + h;
+    final rh = ramc! + h;
     final r = atan2(sin(h) * _tnThe, cos(rh));
-    return reduceRad(atan2(cos(r) * tan(rh), cos(r + eps)));
+    return reduceRad(atan2(cos(r) * tan(rh), cos(r + eps!)));
   }
 
   @override
@@ -296,7 +300,8 @@ class Campanus extends QuadrantSystem {
       required double theta,
       required double asc,
       required double mc})
-      : super(HouseSystem.campanus, ramc, eps, theta, asc, mc) {
+      : super(HouseSystem.campanus,
+            ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc) {
     _snThe = sin(theta);
     _csThe = cos(theta);
     _rm90 = ramc + r90;
@@ -306,7 +311,7 @@ class Campanus extends QuadrantSystem {
     final snH = sin(h);
     final d = _rm90 - atan2(cos(h), snH * _csThe);
     final c = atan2(tan(asin(_snThe * snH)), cos(d));
-    return reduceRad(atan2(tan(d) * cos(c), cos(c + _eps)));
+    return reduceRad(atan2(tan(d) * cos(c), cos(c + eps!)));
   }
 
   @override
@@ -326,39 +331,31 @@ class Topocentric extends QuadrantSystem {
       required double theta,
       required double asc,
       required double mc})
-      : super(HouseSystem.topocentric, ramc, eps, theta, asc, mc) {
+      : super(HouseSystem.topocentric,
+            ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc) {
     _tnThe = tan(theta);
   }
 
   @override
   List<double> calculateCusps() {
     final base = _args.map(
-        (arg) => ascendant(_ramc + arg.$1, _eps, atan2(arg.$2 * _tnThe, 3)));
+        (arg) => ascendant(ramc! + arg.$1, eps!, atan2(arg.$2 * _tnThe, 3)));
     return buildCusps(base.toList());
   }
 }
 
 class Morinus extends HousesBuilder {
-  final double _ramc;
   late double _csEps;
 
-  Morinus(this._ramc, eps) : super(HouseSystem.morinus) {
+  Morinus(double ramc, eps) : super(HouseSystem.morinus, ramc: ramc, eps: eps) {
     _csEps = cos(eps);
-  }
-
-  factory Morinus.fromTimeAndLongitude(double djd, double lng) {
-    final lst = djdToSidereal(djd, lng: lng);
-    final ramc = radians(lst * 15);
-    final nu = nutation(djd / daysPerCent);
-    final eps = radians(obliquity(djd, deps: nu.deltaEps));
-    return Morinus(ramc, eps);
   }
 
   @override
   List<double> calculateCusps() {
     final cusps = List<double>.filled(12, 0);
     for (int i = 0; i < 12; i++) {
-      final r = _ramc + r60 + r30 * (i + 1);
+      final r = ramc! + r60 + r30 * (i + 1);
       final y = sin(r) * _csEps;
       final x = cos(r);
       cusps[i] = reduceRad(atan2(y, x));
@@ -378,33 +375,23 @@ class Equal extends HousesBuilder {
 
   /// Factory method for Equal from the Ascendant system
   /// Starting point is the Ascendant, in radians.
-  /// [djd] is Julian Day for epoch 1900.0
-  /// [geoCoords] is geographical coordinates.
-  factory Equal.fromAsc(double djd, Point<double> geoCoords) {
-    final lst = djdToSidereal(djd, lng: geoCoords.x);
-    final ramc = radians(lst * 15);
-    final theta = radians(geoCoords.y);
-    final t = djd / daysPerCent;
-    final nu = nutation(t);
-    final eps = radians(obliquity(djd, deps: nu.deltaEps));
-    final asc = ascendant(ramc, eps, theta);
-    return Equal(HouseSystem.equalAsc, asc);
+  /// [ramc] - Right Ascention of the Meridian, in radians.
+  /// [eps] - obliquity of the Ecliptic, in radians.
+  /// [theta] - geographical latitude, in radians.
+  factory Equal.fromAsc(
+      {required double ramc, required double eps, required double theta}) {
+    return Equal(HouseSystem.equalAsc, ascendant(ramc, eps, theta));
   }
 
   /// Factory method for Equal from the MC system
   /// Starting point is the Midheaven.
-  /// [djd] is Julian Day for epoch 1900.0
-  /// [geoCoords] is geographical coordinates.
-  factory Equal.fromMC(double djd, Point<double> geoCoords) {
-    final t = djd / daysPerCent;
-    final nu = nutation(t);
-    final eps = radians(obliquity(djd, deps: nu.deltaEps));
-    final lst = djdToSidereal(djd, lng: geoCoords.x);
-    final ramc = radians(lst * 15);
+  ///
+  /// [ramc] - Right Ascention of the Meridian, in radians.
+  /// [eps] - obliquity of the Ecliptic, in radians.
+  factory Equal.fromMC({required double ramc, required double eps}) {
     final mc = midheaven(ramc, eps);
     return Equal(HouseSystem.equalMC, mc, 9);
   }
-  //Equal(HouseSystem.equalMC, mc, 9);
 
   @override
   List<double> calculateCusps() {

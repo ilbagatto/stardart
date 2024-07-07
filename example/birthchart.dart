@@ -29,7 +29,7 @@ OPTIONS
 ${parser.usage}
 
 Example:
-birthchart --datetime="1965-02-01 11:46" --lat="55N45" --lng="37E35"
+birthchart --datetime="--datetime=1965-02-01T14:46:00+03:00" --lat="55N45" --lng="37E35"
 ''';
 }
 
@@ -163,19 +163,11 @@ void main(List<String> arguments) {
     }
 
     final civil = DateTime.parse(argResults['datetime']);
-    print('UTC: ${civil.toString()}');
-    final hm = civil.hour + (civil.minute + civil.second / 60) / 60;
-    final djd = julDay(civil.year, civil.month, civil.day + hm / 24);
-    final jd = djd + djdToJd;
-    print('Julian Date: ${jd.toStringAsFixed(8)}');
-
     final lat = parseGeo(argResults['lat'], geoLatRegexp);
     final lng = parseGeo(argResults['lng'], geoLngRegexp);
 
     final latDir = lat.$3 < 0 ? 'S' : 'N';
     final lngDir = lng.$3 < 0 ? 'E' : 'E';
-    print(sprintf("lat: %02d%s%02d, lng: %03d%s%02d",
-        [lat.$1, latDir, lat.$2, lng.$1, lngDir, lng.$2]));
     final geoLon = ddd(lng.$1, lng.$2) * lng.$3;
     final geoLat = ddd(lat.$1, lat.$2) * lat.$3;
 
@@ -186,8 +178,14 @@ void main(List<String> arguments) {
       aspectTypes: 0x1
     );
 
-    final birthChart = BaseChart.forDJDAndPlace(
-        djd: djd, geoCoords: Point(geoLon, geoLat), settings: settings);
+    final birthChart = BaseChart.forDateTime(
+        dt: civil, geoCoords: Point(geoLon, geoLat), settings: settings);
+
+    print('Date/Time: ${civil.toLocal().toString()}');
+    print('Julian Date: ${(birthChart.djd + djdToJd).toStringAsFixed(8)}');
+    print(sprintf('Delta-T: %05.2f sec.', [birthChart.deltaT]));
+    print(sprintf("lat: %02d%s%02d, lng: %03d%s%02d",
+        [lat.$1, latDir, lat.$2, lng.$1, lngDir, lng.$2]));
 
     print('${birthChart.houseSystem} houses');
     print('Orbs: ${birthChart.orbsMethod}');
