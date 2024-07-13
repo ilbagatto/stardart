@@ -73,6 +73,7 @@ typedef AspectedPoint = ({String name, double longitude});
 /// [arc]: angular distance between planets (degrees)
 /// [delta]: difference between actual distance and exact aspect value
 typedef AspectInfo = ({
+  AspectedPoint source,
   AspectedPoint target,
   Aspect aspect,
   double delta,
@@ -122,6 +123,7 @@ class AspectsDetector {
       final closest = findClosest(source, target, arc);
       if (closest != null) {
         yield (
+          source: source,
           target: target,
           aspect: closest.aspect,
           delta: closest.delta,

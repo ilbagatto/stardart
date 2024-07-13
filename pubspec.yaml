@@ -1,6 +1,6 @@
 name: stardart
 description: A starting point for Dart libraries or applications.
-version: 1.2.0
+version: 1.2.1
 repository: https://github.com/ilbagatto/stardart
 publish_to: none
 
