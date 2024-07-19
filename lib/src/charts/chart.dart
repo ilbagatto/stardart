@@ -1,16 +1,14 @@
 import 'dart:math';
 import 'package:astropc/heliocentric.dart';
 import 'package:astropc/mathutils.dart';
+import 'package:vector_math/vector_math.dart';
+
 import 'package:astropc/misc.dart' as misc;
 import 'package:astropc/timeutils.dart' as timeutils;
-import 'package:stardart/houses.dart';
-import 'package:vector_math/vector_math.dart';
+import '../houses.dart';
 import '../common.dart';
 import '../../aspects.dart';
 import 'positions.dart';
-import '../houses.dart';
-
-// enum ChartObjectType { luminary, planet, point }
 
 typedef Place = ({String name, Point coords});
 
@@ -35,6 +33,10 @@ typedef ChartObjectInfo = ({
   int house
 });
 
+abstract class ChartVisitor {
+  void visit(BaseChart baseChart);
+}
+
 /// Base interface for charts
 abstract class Chart {
   final String _name;
@@ -55,6 +57,8 @@ abstract class Chart {
   HouseSystem get houseSystem;
   OrbsMethod get orbsMethod;
   int get aspectTypes;
+
+  void accept(ChartVisitor visitor);
 }
 
 /// Birth Chart, Radix, Natal Chart...
@@ -178,4 +182,9 @@ class BaseChart extends Chart {
   /// Binary combination of aspect types flags
   @override
   int get aspectTypes => _aspectsDetector.typeFlags;
+
+  @override
+  void accept(ChartVisitor visitor) {
+    visitor.visit(this);
+  }
 }
