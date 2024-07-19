@@ -26,9 +26,34 @@ enum ZodiacSign {
   final int idx;
 }
 
-enum Triplicities { fire, earth, air, water }
+/// Triplicities
+enum Triplicity {
+  fire('Fire'),
+  earth('Earth'),
+  air('Air'),
+  water('Water');
 
-enum Quadruplicities { cardinal, fixed, mutable }
+  const Triplicity(this.name);
+
+  @override
+  String toString() => name;
+
+  final String name;
+}
+
+/// Quadruplicities
+enum Quadruplicity {
+  cardinal('Cardinal'),
+  fixed('Fixed'),
+  mutable('Mutable');
+
+  const Quadruplicity(this.name);
+
+  @override
+  String toString() => name;
+
+  final String name;
+}
 
 enum ChartObjectType {
   moo("Moon"),
