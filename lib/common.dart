@@ -1,3 +1,3 @@
-library common;
+library;
 
 export 'src/common.dart';

@@ -6,7 +6,7 @@ import 'package:astropc/mathutils.dart';
 
 const r90 = 1.5707963267948966; // 90 deg in radians
 
-typedef ChartAngles = ({double asc, double mc, double vtx, double ep});
+typedef SensitivePoints = ({double asc, double mc, double vtx, double ep});
 
 /// Midheaven, or The Medium Coeli is the highest point of intersection between
 /// the meridian and the ecliptic.

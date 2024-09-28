@@ -1,4 +1,4 @@
-import 'package:astropc/heliocentric.dart';
+import 'package:astropc/planets.dart';
 import 'package:astropc/sun.dart' as sun;
 import 'package:astropc/moon.dart' as moon;
 import '../common.dart';

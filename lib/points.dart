@@ -1,3 +1,3 @@
-library points;
+library;
 
 export 'src/points.dart';

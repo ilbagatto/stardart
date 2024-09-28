@@ -1,3 +1,3 @@
-library houses;
+library;
 
 export 'src/houses.dart';

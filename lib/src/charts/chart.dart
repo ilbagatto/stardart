@@ -1,10 +1,11 @@
 import 'dart:math';
-import 'package:astropc/heliocentric.dart';
 import 'package:astropc/mathutils.dart';
+import 'package:stardart/points.dart';
 import 'package:vector_math/vector_math.dart';
 
-import 'package:astropc/misc.dart' as misc;
 import 'package:astropc/timeutils.dart' as timeutils;
+import 'package:astropc/planets.dart';
+import 'package:astropc/sphera.dart' as sphera;
 import '../houses.dart';
 import '../common.dart';
 import '../../aspects.dart';
@@ -67,9 +68,9 @@ class BaseChart extends Chart {
   Map<ChartObjectType, ChartObjectInfo>? _objects;
   List<double>? _houses;
   late AspectsDetector _aspectsDetector;
-  late HousesBuilder _housesBuilder;
   late CelestialPositionsBuilder _positionsBuilder;
   final ChartSettings settings;
+  SensitivePoints? _points;
 
   /// Julian date since epoch 1900.0
   final double djd;
@@ -78,7 +79,7 @@ class BaseChart extends Chart {
   final Point<double> geoCoords;
   late double _t;
   late double _deltaT;
-  late misc.NutationRecord _nutation;
+  late sphera.NutationRecord _nutation;
   late double _eps;
   late double _lst;
 
@@ -88,14 +89,10 @@ class BaseChart extends Chart {
       this.settings = defaultChartSettings}) {
     _deltaT = timeutils.deltaT(djd);
     _t = djd / timeutils.daysPerCent;
-    _nutation = misc.nutation(_t);
-    _eps = misc.obliquity(djd, deps: _nutation.deltaEps);
+    _nutation = sphera.nutation(_t);
+    _eps = sphera.obliquity(djd, deps: _nutation.deltaEps);
     _lst = timeutils.djdToSidereal(djd, lng: geoCoords.x);
 
-    _housesBuilder = HousesBuilder.getBuilder(settings.houses,
-        eps: radians(eps),
-        ramc: radians(lst * 15),
-        theta: radians(geoCoords.y));
     _aspectsDetector = AspectsDetector(
         orbsMethod: OrbsMethod.getInstance(settings.orbs),
         typeFlags: settings.aspectTypes);
@@ -142,9 +139,33 @@ class BaseChart extends Chart {
     return res;
   }
 
+  List<double> _calculateCusps() {
+    final sys = settings.houses;
+    switch (sys) {
+      case HouseSystem.placidus:
+      case HouseSystem.koch:
+      case HouseSystem.regioMontanus:
+      case HouseSystem.campanus:
+      case HouseSystem.topocentric:
+        return quadrantCusps(
+            system: sys,
+            ramc: radians(lst * 15),
+            eps: radians(eps),
+            theta: radians(geoCoords.y));
+      case HouseSystem.morinus:
+        return morinusCusps(ramc: radians(lst * 15), eps: radians(eps));
+      case HouseSystem.equalAsc:
+        return equalAscCusps(radians(points.asc));
+      case HouseSystem.equalMC:
+        return equalMCCusps(radians(points.mc));
+      default:
+        return signCuspCusps();
+    }
+  }
+
   @override
   List<double> get houses {
-    _houses ??= _housesBuilder.calculateCusps();
+    _houses ??= _calculateCusps();
     return _houses!;
   }
 
@@ -162,13 +183,13 @@ class BaseChart extends Chart {
   // CelestialPositionsBuilder get positionsBuilder => _positionsBuilder;
 
   @override
-  HouseSystem get houseSystem => _housesBuilder.system;
+  HouseSystem get houseSystem => settings.houses;
 
   @override
   OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
 
   /// Nutation in obliquity and longitude
-  misc.NutationRecord get nutation => _nutation;
+  sphera.NutationRecord get nutation => _nutation;
 
   /// Obliquity of the Ecliptic, arc-degrees
   double get eps => _eps;
@@ -182,6 +203,24 @@ class BaseChart extends Chart {
   /// Binary combination of aspect types flags
   @override
   int get aspectTypes => _aspectsDetector.typeFlags;
+
+  SensitivePoints _calculatePoints() {
+    final ramc = radians(lst * 15);
+    final reps = radians(eps);
+    final theta = radians(geoCoords.y);
+    return (
+      asc: degrees(ascendant(ramc, reps, theta)),
+      mc: degrees(midheaven(ramc, reps)),
+      vtx: degrees(vertex(ramc, reps, theta)),
+      ep: eastpoint(ramc, reps)
+    );
+  }
+
+  /// sensitive points
+  SensitivePoints get points {
+    _points ??= _calculatePoints();
+    return _points!;
+  }
 
   @override
   void accept(ChartVisitor visitor) {

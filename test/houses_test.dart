@@ -1,4 +1,3 @@
-import 'package:stardart/houses.dart';
 import 'package:stardart/src/houses.dart';
 import 'package:test/test.dart';
 import 'package:vector_math/vector_math.dart';
@@ -8,56 +7,46 @@ const delta = 1e-6;
 void main() {
   final ramc = radians(45.0);
   final mc = radians(47.47);
-  final asc = radians(144.92);
+  //final asc = radians(144.92);
   final theta = radians(42.0);
   final eps = radians(23.4523);
   group('Quadrant Systems', () {
-    const base = [10, 11, 1, 2];
-
-    compareBaseCusps(List<double> got, List<double> exp,
+    compareBaseCusps(Iterable<double> got, List<double> exp,
         {double delta = 1e-4}) {
+      List<double> lst = got.toList();
       for (int i = 0; i < 4; i++) {
-        final n = base[i];
-        expect(got[n], closeTo(exp[i], delta));
+        final a = degrees(lst[i]);
+        final b = exp[i];
+        expect(a, closeTo(b, delta));
       }
-    }
-
-    calculateAndCheck(HousesBuilder sys, List<double> exp,
-        {double delta = 1e-4}) {
-      final got = sys.calculateCusps();
-      compareBaseCusps(got, exp, delta: 0.1);
     }
 
     test('Placidus', () {
       const exp = [83.21, 116.42, 167.08, 194.39];
-      final sys =
-          Placidus(ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc);
-      calculateAndCheck(sys, exp, delta: 0.1);
+      final got = placidusCusps(ramc: ramc, eps: eps, theta: theta);
+      compareBaseCusps(got, exp, delta: 0.1);
     });
 
     test('Koch', () {
       const exp = [87.50, 117.46, 172.43, 200.09];
-      final sys = Koch(ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc);
-      calculateAndCheck(sys, exp);
+      final got = kochCusps(ramc: ramc, eps: eps, theta: theta, mc: mc);
+      compareBaseCusps(got, exp, delta: 0.1);
     });
 
     test('Regiomontanus', () {
       const exp = [86.55, 119.56, 167.79, 193.66];
-      final sys =
-          Regiomontanus(ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc);
-      calculateAndCheck(sys, exp);
+      final got = regioMontanusCusps(ramc: ramc, eps: eps, theta: theta);
+      compareBaseCusps(got, exp, delta: 0.1);
     });
     test('Campanus', () {
       const exp = [77.90, 111.82, 174.04, 200.48];
-      final sys =
-          Campanus(ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc);
-      calculateAndCheck(sys, exp);
+      final got = campanusCusps(ramc: ramc, eps: eps, theta: theta);
+      compareBaseCusps(got, exp, delta: 0.1);
     });
     test('Topocentric', () {
       const exp = [83.04, 116.25, 167.04, 194.43];
-      final sys =
-          Topocentric(ramc: ramc, eps: eps, theta: theta, asc: asc, mc: mc);
-      calculateAndCheck(sys, exp);
+      final got = topocentricCusps(ramc: ramc, eps: eps, theta: theta);
+      compareBaseCusps(got, exp, delta: 0.1);
     });
   });
 
@@ -76,16 +65,15 @@ void main() {
       14.330,
       43.092
     ];
-    final sys = Morinus(radians(345.559001), radians(23.430827));
-    final got = sys.calculateCusps();
+    final got =
+        morinusCusps(ramc: radians(345.559001), eps: radians(23.430827));
     for (int i = 0; i < 12; i++) {
       expect(got[i], closeTo(exp[i], 1e-2));
     }
   });
 
   group('Equal Systems', () {
-    void compareResults(Equal sys, List<double> exp) {
-      final got = sys.calculateCusps();
+    void compareResults(List<double> got, List<double> exp) {
       for (int i = 0; i < 12; i++) {
         expect(got[i], closeTo(exp[i], delta));
       }
@@ -106,7 +94,7 @@ void main() {
         300.0,
         330.0
       ]);
-      compareResults(Equal.signCusp(), exp);
+      compareResults(signCuspCusps(), exp);
     });
 
     test('Equal from Asc', () {
@@ -124,7 +112,7 @@ void main() {
         50.0,
         80.0
       ]);
-      compareResults(Equal(HouseSystem.equalAsc, radians(110)), exp);
+      compareResults(equalAscCusps(radians(110)), exp);
     });
     test('Equal from MC', () {
       final exp = List<double>.from([
@@ -141,7 +129,7 @@ void main() {
         50.0,
         80.0
       ]);
-      compareResults(Equal(HouseSystem.equalMC, radians(20), 9), exp);
+      compareResults(equalMCCusps(radians(20)), exp);
     });
   });
 
