@@ -1,96 +1,111 @@
 import 'package:stardart/aspects.dart';
+import 'package:stardart/src/charts/objects.dart';
 import 'package:test/test.dart';
 
 const objects = [
-  (name: 'Moon', longitude: 310.211118039121),
-  (name: 'Sun', longitude: 312.430798112358),
-  (name: 'Mercury', longitude: 297.078430402921),
-  (name: 'Venus', longitude: 295.209360003483),
-  (name: 'Mars', longitude: 177.966202541024),
-  (name: 'Jupiter', longitude: 46.9290328362618),
-  (name: 'Saturn', longitude: 334.601965217279),
-  (name: 'Uranus', longitude: 164.031950787664),
-  (name: 'Neptune', longitude: 229.922411342362),
-  (name: 'Pluto', longitude: 165.825418322174)
+  (
+    type: ChartObjectType.moon,
+    position: (lambda: 310.2111, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0,
+  ),
+  (
+    type: ChartObjectType.sun,
+    position: (lambda: 312.4308, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0,
+  ),
+  (
+    type: ChartObjectType.mercury,
+    position: (lambda: 297.0784, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.venus,
+    position: (lambda: 295.2094, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.mars,
+    position: (lambda: 177.9662, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.jupiter,
+    position: (lambda: 46.9290, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.saturn,
+    position: (lambda: 334.602, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.uranus,
+    position: (lambda: 164.032, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.neptune,
+    position: (lambda: 229.9224, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
+  (
+    type: ChartObjectType.pluto,
+    position: (lambda: 165.8254, beta: 0.0, delta: 1.0),
+    dailyMotion: 1.0,
+    house: 0
+  ),
 ];
 
-final objNames = objects.map((e) => e.name).toList();
-
-void testMethod(OrbsMethod method, Map<String, int> stats) {
-  AspectsDetector aspd =
-      AspectsDetector(orbsMethod: method, typeFlags: AspectType.major.value);
-
-  for (final name in objNames) {
-    final source = objects.firstWhere((e) => e.name == name);
-    final targets = objects.where((e) => e.name != name).toList();
-    final aspects = aspd.iterAspects(source, targets).toList();
-    test('$name aspects with ${method.name}',
-        () => expect(aspects.length, equals(stats[name]!)));
-  }
-}
-
 void main() {
-  group('Methods', () {
-    group('Dariot', () {
-      const Map<String, int> stats = {
-        'Moon': 2,
-        'Sun': 3,
-        'Mercury': 2,
-        'Venus': 3,
-        'Mars': 2,
-        'Jupiter': 5,
-        'Saturn': 0,
-        'Uranus': 3,
-        'Neptune': 5,
-        'Pluto': 3
-      };
-      testMethod(Dariot(), stats);
-    });
-    group('DeVore', () {
-      const Map<String, int> stats = {
-        'Moon': 1,
-        'Sun': 2,
-        'Mercury': 2,
-        'Venus': 2,
-        'Mars': 2,
-        'Jupiter': 4,
-        'Saturn': 0,
-        'Uranus': 2,
-        'Neptune': 1,
-        'Pluto': 2
-      };
-      testMethod(DeVore(), stats);
-    });
-    group('ClassicWithAspectRatio', () {
-      const Map<String, int> stats = {
-        'Moon': 2,
-        'Sun': 3,
-        'Mercury': 2,
-        'Venus': 3,
-        'Mars': 2,
-        'Jupiter': 5,
-        'Saturn': 0,
-        'Uranus': 3,
-        'Neptune': 5,
-        'Pluto': 3
-      };
-      testMethod(ClassicWithAspectRatio(), stats);
-    });
+  group('Closest Aspect', () {
+    final info = findClosestAspect(source: objects[0], target: objects[1]);
+    test('Sun-Moon conjunction with default orbs method',
+        () => expect(info!.aspect, equals(Aspect.conjunction)));
+
+    test('Sun-Moon conjunction with default orbs method',
+        () => expect(info!.aspect, equals(Aspect.conjunction)));
   });
 
-  group('Test Stelliums', () {
-    test('Default gap', () {
+  group('Stelliums', () {
+    test('Defaut gap', () {
       final groups = iterStelliums(objects).toList();
-      expect(groups.length, equals(7));
+      expect(groups.length, 7);
     });
     test('Large gap', () {
-      final groups = iterStelliums(objects, 15).toList();
-      expect(groups.length, equals(5));
+      final groups = iterStelliums(objects, 15.0);
+      expect(groups.length, 5);
+    });
+    test('Zero gap', () {
+      final groups = iterStelliums(objects, 0.0);
+      expect(groups.length, objects.length);
     });
 
-    test('Zero gap', () {
-      final groups = iterStelliums(objects, 0).toList();
-      expect(groups.length, objects.length);
+    test('Around zero', () {
+      List<ChartObjectInfo> objs = List.from(objects);
+
+      objs[5] = (
+        type: ChartObjectType.jupiter,
+        position: (lambda: 6.0, beta: 0.0, delta: 1.0),
+        dailyMotion: 1.0,
+        house: 0
+      );
+      objs[6] = (
+        type: ChartObjectType.saturn,
+        position: (lambda: 358.602, beta: 0.0, delta: 1.0),
+        dailyMotion: 1.0,
+        house: 0
+      );
+      final groups = iterStelliums(objs);
+      expect(groups.length, 6);
     });
   });
 }

@@ -2,13 +2,11 @@ import 'dart:math';
 import 'package:astropc/mathutils.dart';
 import 'package:stardart/points.dart';
 import 'package:vector_math/vector_math.dart';
-
 import 'package:astropc/timeutils.dart' as timeutils;
-import 'package:astropc/planets.dart';
 import 'package:astropc/sphera.dart' as sphera;
 import '../houses.dart';
-import '../common.dart';
 import '../../aspects.dart';
+import 'objects.dart';
 import 'positions.dart';
 
 typedef Place = ({String name, Point coords});
@@ -27,13 +25,6 @@ const defaultChartSettings = (
   aspectTypes: 0x1 // AspectType.major.value
 );
 
-typedef ChartObjectInfo = ({
-  EclipticPosition position,
-  double dailyMotion,
-  ChartObjectType type,
-  int house
-});
-
 abstract class ChartVisitor {
   void visit(BaseChart baseChart);
 }
@@ -50,9 +41,9 @@ abstract class Chart {
   /// Chart objects including the luminaries, planets and some sensitive points.
   Map<ChartObjectType, ChartObjectInfo> get objects;
 
-  /// Aspects to given object type [id].
+/*   /// Aspects to given object type [id].
   List<AspectInfo> aspectsTo(ChartObjectType id);
-
+ */
   /// List of 12 houses cusps
   List<double> get houses;
   HouseSystem get houseSystem;
@@ -64,10 +55,9 @@ abstract class Chart {
 
 /// Birth Chart, Radix, Natal Chart...
 class BaseChart extends Chart {
-  Map<ChartObjectType, List<AspectInfo>>? _aspects;
+  //Map<ChartObjectType, List<AspectInfo>>? _aspects;
   Map<ChartObjectType, ChartObjectInfo>? _objects;
   List<double>? _houses;
-  late AspectsDetector _aspectsDetector;
   late CelestialPositionsBuilder _positionsBuilder;
   final ChartSettings settings;
   SensitivePoints? _points;
@@ -92,10 +82,6 @@ class BaseChart extends Chart {
     _nutation = sphera.nutation(_t);
     _eps = sphera.obliquity(djd, deps: _nutation.deltaEps);
     _lst = timeutils.djdToSidereal(djd, lng: geoCoords.x);
-
-    _aspectsDetector = AspectsDetector(
-        orbsMethod: OrbsMethod.getInstance(settings.orbs),
-        typeFlags: settings.aspectTypes);
     _positionsBuilder = CelestialPositionsBuilder(djd + _deltaT / 86400.0);
   }
 
@@ -120,24 +106,24 @@ class BaseChart extends Chart {
         name: name, dt: now, geoCoords: geoCoords, settings: settings);
   }
 
-  @override
-  List<AspectInfo> aspectsTo(ChartObjectType id) {
-    final obj = objects[id]!;
-    _aspects ??= <ChartObjectType, List<AspectInfo>>{};
-    if (_aspects!.containsKey(obj.type)) {
-      return _aspects![obj.type]!;
-    }
+  // @override
+  // List<AspectInfo> aspectsTo(ChartObjectType id) {
+  //   final obj = objects[id]!;
+  //   _aspects ??= <ChartObjectType, List<AspectInfo>>{};
+  //   if (_aspects!.containsKey(obj.type)) {
+  //     return _aspects![obj.type]!;
+  //   }
 
-    final source = (name: obj.type.name, longitude: obj.position.lambda);
-    final others = objects.keys
-        .map((k) => objects[k]!)
-        .map((o) => (name: o.type.name, longitude: o.position.lambda))
-        .where((o) => o.name != source.name)
-        .toList();
-    final res = _aspectsDetector.iterAspects(source, others).toList();
-    _aspects![id] = res;
-    return res;
-  }
+  //   final source = (name: obj.type.name, longitude: obj.position.lambda);
+  //   final others = objects.keys
+  //       .map((k) => objects[k]!)
+  //       .map((o) => (name: o.type.name, longitude: o.position.lambda))
+  //       .where((o) => o.name != source.name)
+  //       .toList();
+  //   final res = _aspectsDetector.iterAspects(source, others).toList();
+  //   _aspects![id] = res;
+  //   return res;
+  // }
 
   List<double> _calculateCusps() {
     final sys = settings.houses;
@@ -186,7 +172,7 @@ class BaseChart extends Chart {
   HouseSystem get houseSystem => settings.houses;
 
   @override
-  OrbsMethod get orbsMethod => _aspectsDetector.orbsMethod;
+  OrbsMethod get orbsMethod => OrbsMethod.getInstance(settings.orbs);
 
   /// Nutation in obliquity and longitude
   sphera.NutationRecord get nutation => _nutation;
@@ -202,7 +188,7 @@ class BaseChart extends Chart {
 
   /// Binary combination of aspect types flags
   @override
-  int get aspectTypes => _aspectsDetector.typeFlags;
+  int get aspectTypes => settings.aspectTypes;
 
   SensitivePoints _calculatePoints() {
     final ramc = radians(lst * 15);

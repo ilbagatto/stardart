@@ -6,8 +6,8 @@ import 'package:sprintf/sprintf.dart';
 import 'package:astropc/timeutils.dart';
 import 'package:intl/intl.dart';
 import 'package:stardart/chart.dart';
-import 'package:stardart/common.dart';
 import 'package:stardart/houses.dart';
+import 'package:stardart/src/charts/objects.dart';
 import 'package:stardart/src/houses.dart';
 import 'package:stardart/utils.dart';
 
@@ -81,15 +81,15 @@ void displayPlanets(BaseChart chart) {
 }
 
 void displayAspects(BaseChart chart) {
-  for (final id in ChartObjectType.values) {
-    final obj = chart.objects[id]!;
+  for (final _ in ChartObjectType.values) {
+/*     final obj = chart.objects[id]!;
     final asps = chart
         .aspectsTo(id)
         .map((a) => '${a.aspect.briefName} ${a.target.name.substring(0, 3)}')
         .toList();
     final cols = asps.isNotEmpty ? asps.join(' ') : ' - ';
     String row = sprintf('%-12s %s', [obj.type.name, cols]);
-    print(row);
+    print(row); */
   }
 }
 

@@ -1,7 +1,9 @@
 library;
 
+import 'package:astropc/mathutils.dart';
 import 'package:stardart/aspects.dart';
 
+import '../charts/objects.dart';
 import 'aspects.dart';
 
 enum Orbs { dariot, deVore, classicWithAspectRatio }
@@ -22,7 +24,18 @@ abstract class OrbsMethod {
   @override
   String toString() => _name;
 
-  bool isAspect(String srcName, String dstName, Aspect asp, double arc);
+  /// Check, if two objects are in aspect
+  ///
+  /// * [source] : source object
+  /// * [target] : target object
+  /// * [aspect] : aspect to check
+  /// * [arc] (optional) : arc between the objects. May be reused in repeating chects.
+  /// Returns aspect details if there is an aspect, otherwise `null`.
+  AspectInfo? isAspect(
+      {required ChartObjectInfo source,
+      required ChartObjectInfo target,
+      required Aspect asp,
+      double? arc});
 
   /// Return object by [id].
   static OrbsMethod getInstance(Orbs id) {
@@ -45,47 +58,61 @@ abstract class OrbsMethod {
 ///
 /// This method became the standard for European Renaissance astrologers.
 /// I does not take into account the nature of aspects.
-///
-/// The class is a Singleton.
 class Dariot extends OrbsMethod {
   static Dariot? _instance;
 
   static const defaultMoiety = 4.0;
-  static const Map<String, double> moieties = {
-    "Moon": 12.0,
-    "Sun": 15.0,
-    "Mercury": 7.0,
-    "Venus": 7.0,
-    "Mars": 8.0,
-    "Jupiter": 9.0,
-    "Saturn": 9.0,
-    "Uranus": 6.0,
-    "Neptune": 6.0,
-    "Pluto": 5.0
+  static const Map<ChartObjectType, double> moieties = {
+    ChartObjectType.moon: 12.0,
+    ChartObjectType.sun: 15.0,
+    ChartObjectType.mercury: 7.0,
+    ChartObjectType.venus: 7.0,
+    ChartObjectType.mars: 8.0,
+    ChartObjectType.jupiter: 9.0,
+    ChartObjectType.saturn: 9.0,
+    ChartObjectType.uranus: 6.0,
+    ChartObjectType.neptune: 6.0,
+    ChartObjectType.pluto: 5.0
   };
 
   const Dariot._() : super('Classic (Claude Dariot)');
 
   factory Dariot() => _instance ??= Dariot._();
 
-  double getMoiety(name) {
-    return moieties.containsKey(name) ? moieties[name]! : defaultMoiety;
-  }
+  double getMoiety(ChartObjectType type) =>
+      moieties.containsKey(type) ? moieties[type]! : defaultMoiety;
 
-  /// Given names of two objects, [srcName] and [dstName],
-  /// calculate orb between them.
-  double calculateOrb(String srcName, String dstName) {
+  /// Given two chart objects, [srcType] and [dstType], calculate orb between them.
+  double calculateOrb(ChartObjectType srcType, ChartObjectType dstType) {
     // Calculate mean orb for planets src and dst,
-    final a = getMoiety(srcName);
-    final b = getMoiety(dstName);
+    final a = getMoiety(srcType);
+    final b = getMoiety(dstType);
     return (a + b) / 2.0;
   }
 
-  @override
-  bool isAspect(String srcName, String dstName, Aspect asp, double arc) {
+  /// Check aspect using calculated orb.
+  ///
+  /// * [asp] : aspect to check
+  /// * [orb] : orb in arc-degrees.
+  /// * [arc] : angular distance in arc-degrees
+  ///
+  /// Returns aspect details if there is an aspect, otherwise `null`.
+  AspectInfo? checkAspect(Aspect asp, double orb, double arc) {
     final delta = (arc - asp.value).abs();
-    final orb = calculateOrb(srcName, dstName);
-    return delta <= orb;
+    if (delta <= orb) {
+      return (aspect: asp, arc: arc, delta: delta);
+    }
+    return null;
+  }
+
+  @override
+  AspectInfo? isAspect(
+      {required ChartObjectInfo source,
+      required ChartObjectInfo target,
+      required Aspect asp,
+      double? arc}) {
+    arc ??= shortestArc(source.position.lambda, target.position.lambda);
+    return checkAspect(asp, calculateOrb(source.type, target.type), arc);
   }
 }
 
@@ -119,9 +146,17 @@ class DeVore extends OrbsMethod {
   factory DeVore() => _instance ??= DeVore._();
 
   @override
-  bool isAspect(String srcName, String dstName, Aspect asp, double arc) {
+  AspectInfo? isAspect(
+      {required ChartObjectInfo source,
+      required ChartObjectInfo target,
+      required Aspect asp,
+      double? arc}) {
+    arc ??= shortestArc(source.position.lambda, target.position.lambda);
     final range = ranges[asp]!;
-    return range.$1 <= arc && range.$2 >= arc;
+    if (range.$1 <= arc && range.$2 >= arc) {
+      return (aspect: asp, arc: arc, delta: (arc - asp.value).abs());
+    }
+    return null;
   }
 }
 
@@ -140,14 +175,18 @@ class ClassicWithAspectRatio extends OrbsMethod {
   }
 
   @override
-  bool isAspect(String srcName, String dstName, Aspect asp, double arc) {
-    double orb = _classic.calculateOrb(srcName, dstName);
+  AspectInfo? isAspect(
+      {required ChartObjectInfo source,
+      required ChartObjectInfo target,
+      required Aspect asp,
+      double? arc}) {
+    arc ??= shortestArc(source.position.lambda, target.position.lambda);
+    double orb = _classic.calculateOrb(source.type, target.type);
     if (asp.typeFlag == AspectType.minor) {
       orb *= minorCoeff;
     } else if (asp.typeFlag == AspectType.kepler) {
       orb *= keplerCoeff;
     }
-    final delta = (arc - asp.value).abs();
-    return delta <= orb;
+    return _classic.checkAspect(asp, orb, arc);
   }
 }

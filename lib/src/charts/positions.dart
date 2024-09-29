@@ -1,10 +1,9 @@
+import 'package:astropc/mathutils.dart';
 import 'package:astropc/planets.dart';
 import 'package:astropc/sun.dart' as sun;
 import 'package:astropc/moon.dart' as moon;
-import '../common.dart';
+import 'package:stardart/src/charts/objects.dart';
 import '../houses.dart';
-import '../aspects/angles.dart';
-import 'chart.dart';
 
 class CelestialPositionsBuilder {
   final double _djd;
@@ -36,7 +35,7 @@ class CelestialPositionsBuilder {
   ChartObjectInfo calculateMoon(List<double> cusps) {
     final moo = moon.apparent(_djd, dpsi: _sphera.nutation.deltaPsi);
     return (
-      type: ChartObjectType.moo,
+      type: ChartObjectType.moon,
       dailyMotion: moo.motion,
       house: inHouse(moo.lambda, cusps),
       position: (lambda: moo.lambda, beta: moo.beta, delta: moo.delta)
@@ -47,7 +46,7 @@ class CelestialPositionsBuilder {
     final lngToday = moon.lunarNode(_djd, trueNode: _trueNode);
     final lngTomorrow = moon.lunarNode(_djd + 1, trueNode: _trueNode);
     return (
-      type: ChartObjectType.nnd,
+      type: ChartObjectType.node,
       dailyMotion: diffAngle(lngToday, lngTomorrow),
       house: inHouse(lngToday, cusps),
       position: (lambda: lngToday, beta: 0.0, delta: 0.0)
@@ -75,25 +74,25 @@ class CelestialPositionsBuilder {
     switch (obj) {
       case ChartObjectType.sun:
         return calculateSun(cusps);
-      case ChartObjectType.moo:
+      case ChartObjectType.moon:
         return calculateMoon(cusps);
-      case ChartObjectType.mer:
+      case ChartObjectType.mercury:
         return calculatePlanet(PlanetId.Mercury, obj, cusps);
-      case ChartObjectType.ven:
+      case ChartObjectType.venus:
         return calculatePlanet(PlanetId.Venus, obj, cusps);
-      case ChartObjectType.mar:
+      case ChartObjectType.mars:
         return calculatePlanet(PlanetId.Mars, obj, cusps);
-      case ChartObjectType.jup:
+      case ChartObjectType.jupiter:
         return calculatePlanet(PlanetId.Jupiter, obj, cusps);
-      case ChartObjectType.sat:
+      case ChartObjectType.saturn:
         return calculatePlanet(PlanetId.Saturn, obj, cusps);
-      case ChartObjectType.ura:
+      case ChartObjectType.uranus:
         return calculatePlanet(PlanetId.Uranus, obj, cusps);
-      case ChartObjectType.nep:
+      case ChartObjectType.neptune:
         return calculatePlanet(PlanetId.Neptune, obj, cusps);
-      case ChartObjectType.plu:
+      case ChartObjectType.pluto:
         return calculatePlanet(PlanetId.Pluto, obj, cusps);
-      case ChartObjectType.nnd:
+      case ChartObjectType.node:
         return calculateLunarNode(cusps);
       default:
         throw UnsupportedError('$obj is not supported');

@@ -2,6 +2,10 @@
 
 library;
 
+import 'package:astropc/mathutils.dart';
+import 'package:sprintf/sprintf.dart';
+
+import '../charts/objects.dart';
 import '../common.dart';
 import 'orbs.dart';
 
@@ -59,26 +63,19 @@ enum Aspect implements Comparable<Aspect> {
 
   @override
   int compareTo(Aspect other) => (value - other.value).toInt();
+
+  @override
+  String toString() => '$name, ${sprintf('%f', [value])}';
 }
 
-/// Aspect and diviation from its exact value.
-typedef AspectAndDelta = ({Aspect aspect, double delta});
-
-/// Aspected celestial point
-typedef AspectedPoint = ({String name, double longitude});
-
-/// [source]: the first aspected point
-/// [target]: the second aspected point
+/// Aspect details.
 /// [aspect]: Aspect instance
 /// [arc]: angular distance between planets (degrees)
 /// [delta]: difference between actual distance and exact aspect value
-typedef AspectInfo = ({
-  AspectedPoint source,
-  AspectedPoint target,
-  Aspect aspect,
-  double delta,
-  double arc
-});
+typedef AspectInfo = ({Aspect aspect, double delta, double arc});
+
+/* 
+
 
 class AspectsDetector {
   /// indicates, which method to use for detecting an aspect.
@@ -132,4 +129,36 @@ class AspectsDetector {
       }
     }
   }
+}
+ */
+
+/// Find closest aspect between two or null, if there are no aspects.
+///
+/// * [source] is the first celestial point.
+/// * [target] is the second celestial point.
+/// * [method] : method of calculating orbs
+/// * [flags] : binary combination of aspect types
+///
+/// Returns [AspectInfo] instance or [null] if there is no aspect.
+AspectInfo? findClosestAspect(
+    {required ChartObjectInfo source,
+    required ChartObjectInfo target,
+    OrbsMethod? method,
+    AspectType flags = AspectType.major}) {
+  method ??= OrbsMethod.getInstance(Orbs.classicWithAspectRatio);
+  AspectInfo? closest;
+  final arc = shortestArc(source.position.lambda, target.position.lambda);
+  for (final asp in Aspect.values) {
+    if (asp.typeFlag.value & flags.value != 0) {
+      final info =
+          method.isAspect(source: source, target: target, asp: asp, arc: arc);
+      if (info == null) {
+        continue;
+      }
+      if (closest == null || closest.delta > info.delta) {
+        closest = info;
+      }
+    }
+  }
+  return closest;
 }

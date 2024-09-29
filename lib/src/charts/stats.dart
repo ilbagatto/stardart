@@ -2,6 +2,7 @@ import 'package:astropc/mathutils.dart';
 import 'package:stardart/chart.dart';
 import 'package:stardart/common.dart';
 import 'package:stardart/src/charts/chart.dart';
+import 'package:stardart/src/charts/objects.dart';
 
 class ChartStats implements ChartVisitor {
   final Map<Triplicity, List<ChartObjectType>> _triplicities = {
@@ -19,7 +20,7 @@ class ChartStats implements ChartVisitor {
   @override
   void visit(BaseChart chart) {
     final planets = chart.objects.values.where((obj) =>
-        obj.type.index >= 0 && obj.type.index <= ChartObjectType.plu.index);
+        obj.type.index >= 0 && obj.type.index <= ChartObjectType.pluto.index);
     for (final obj in planets) {
       final id = obj.type;
       final (z, _, _, _) = zdms(obj.position.lambda);
