@@ -48,11 +48,16 @@ $ dart pub update
 
 ```dart
 import 'package:astropc/timeutils.dart';
-import 'package:stardart/chart.dart';
+import 'package:stardart/charts.dart';
 
-final djd = julDay(2024, 5, 9.5); // Julian date for epoch 1900.0
-final chart = BaseChart.forDJDAndPlace(
-      djd: djd, geoCoords: Point(-23.32, 42.698)); // Sofia, Bulgaria
+
+
+final birthChart = BirthChart(
+    name: 'Birth Chart',
+    djd: julDay(2024, 5, 9.5); // Julian date for epoch 1900.0,
+    place: (name: 'Sofia, Bulgaria', coords: Point(-23.32, 42.698)),
+    settings: settings);
+
 final sun = chart.objects[ChartObjectType.sun]; // Sun
 final lng = sun.position.lambda; // longitude
 final motion = sun.dailyMotion; // mean daily 
