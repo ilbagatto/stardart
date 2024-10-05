@@ -2,14 +2,16 @@ import 'dart:math';
 
 import 'package:test/test.dart';
 import 'package:stardart/common.dart';
-import 'package:stardart/chart.dart';
+import 'package:stardart/charts.dart';
 
 const delta = 1e-6;
 
 void main() {
   group('Chart Stats', () {
-    final chart = BaseChart('Test Chart',
-        djd: 23772.990277, geoCoords: Point(-37.58, 55.75));
+    final chart = BirthChart(
+        name: 'Test Chart',
+        djd: 23772.990277,
+        place: (name: 'Moscow', coords: Point(-37.58, 55.75)));
     final stats = ChartStats();
     stats.visit(chart);
     group('Quadruplicities', () {

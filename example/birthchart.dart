@@ -5,10 +5,9 @@ import 'package:astropc/mathutils.dart';
 import 'package:sprintf/sprintf.dart';
 import 'package:astropc/timeutils.dart';
 import 'package:intl/intl.dart';
-import 'package:stardart/chart.dart';
+import 'package:stardart/charts.dart';
 import 'package:stardart/houses.dart';
 import 'package:stardart/src/charts/objects.dart';
-import 'package:stardart/src/houses.dart';
 import 'package:stardart/utils.dart';
 
 final dateTimeFormatter = DateFormat('yyyy-MM-dd HH:mm');
@@ -81,15 +80,15 @@ void displayPlanets(BaseChart chart) {
 }
 
 void displayAspects(BaseChart chart) {
-  for (final _ in ChartObjectType.values) {
-/*     final obj = chart.objects[id]!;
+  for (final id in ChartObjectType.values) {
+    final obj = chart.objects[id]!;
     final asps = chart
         .aspectsTo(id)
-        .map((a) => '${a.aspect.briefName} ${a.target.name.substring(0, 3)}')
+        .map((ai) => '${ai.$2.aspect.briefName} ${ai.$1.name.substring(0, 3)}')
         .toList();
     final cols = asps.isNotEmpty ? asps.join(' ') : ' - ';
     String row = sprintf('%-12s %s', [obj.type.name, cols]);
-    print(row); */
+    print(row);
   }
 }
 
@@ -129,6 +128,7 @@ void main(List<String> arguments) {
         valueHelp: 'DDD[W|E]MM',
         defaultsTo: '000W00',
         help: 'Geographical longitude')
+    ..addOption('city', abbr: 'c', defaultsTo: '', help: 'City name')
     ..addOption('houses',
         abbr: 'o',
         allowed: [
@@ -179,17 +179,20 @@ void main(List<String> arguments) {
       aspectTypes: 0x1
     );
 
-    final birthChart = BaseChart.forDateTime(
-        dt: civil, geoCoords: Point(geoLon, geoLat), settings: settings);
+    final birthChart = BirthChart(
+        name: 'Birth Chart',
+        djd: dateTimeToDjd(civil),
+        place: (name: '', coords: Point(geoLon, geoLat)),
+        settings: settings);
 
     print('Date/Time: ${civil.toLocal().toString()}');
     print('Julian Date: ${(birthChart.djd + djdToJd).toStringAsFixed(8)}');
-    print(sprintf('Delta-T: %05.2f sec.', [birthChart.deltaT]));
+    print(sprintf('Delta-T: %05.2f sec.', [birthChart.sphera.deltaT]));
     print(sprintf("lat: %02d%s%02d, lng: %03d%s%02d",
         [lat.$1, latDir, lat.$2, lng.$1, lngDir, lng.$2]));
 
-    print('${birthChart.houseSystem} houses');
-    print('Orbs: ${birthChart.orbsMethod}');
+    print('${birthChart.settings.houses} houses');
+    print('Orbs: ${birthChart.settings.orbs}');
     print('\n');
     switch (argResults['view']) {
       case "planets":

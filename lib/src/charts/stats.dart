@@ -1,10 +1,10 @@
 import 'package:astropc/mathutils.dart';
-import 'package:stardart/chart.dart';
+import 'package:stardart/charts.dart';
 import 'package:stardart/common.dart';
 import 'package:stardart/src/charts/chart.dart';
 import 'package:stardart/src/charts/objects.dart';
 
-class ChartStats implements ChartVisitor {
+class ChartStats {
   final Map<Triplicity, List<ChartObjectType>> _triplicities = {
     Triplicity.fire: [],
     Triplicity.earth: [],
@@ -17,7 +17,6 @@ class ChartStats implements ChartVisitor {
     Quadruplicity.mutable: []
   };
 
-  @override
   void visit(BaseChart chart) {
     final planets = chart.objects.values.where((obj) =>
         obj.type.index >= 0 && obj.type.index <= ChartObjectType.pluto.index);
