@@ -33,15 +33,16 @@ class BirthChart extends BaseChart {
   Map<ChartObjectType, Map<ChartObjectType, AspectInfo>> _calculateAspects() {
     Map<ChartObjectType, Map<ChartObjectType, AspectInfo>> res = {};
     final method = OrbsMethod.getInstance(settings.orbs);
-    final aspTypes =
-        AspectType.values.firstWhere((x) => x.value == settings.aspectTypes);
     final keys = objects.keys.toList();
     for (int i = 0; i < keys.length - 1; i++) {
       final src = objects[keys[i]];
       for (int j = 0; j < keys.length; j++) {
         final dst = objects[keys[j]];
         final asp = findClosestAspect(
-            source: src!, target: dst!, method: method, flags: aspTypes);
+            source: src!,
+            target: dst!,
+            method: method,
+            flags: settings.aspectTypes);
         if (asp != null) {
           res.putIfAbsent(src.type, () => {});
           res[src.type]![dst.type] = asp;

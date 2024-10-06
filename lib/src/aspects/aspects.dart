@@ -74,64 +74,6 @@ enum Aspect implements Comparable<Aspect> {
 /// [delta]: difference between actual distance and exact aspect value
 typedef AspectInfo = ({Aspect aspect, double delta, double arc});
 
-/* 
-
-
-class AspectsDetector {
-  /// indicates, which method to use for detecting an aspect.
-  final OrbsMethod orbsMethod;
-
-  /// binary combination of aspect types to be taken into account.
-  final int typeFlags;
-
-  const AspectsDetector(
-      {required this.orbsMethod, this.typeFlags = allAspectTypes});
-
-  /// Find closest aspect between two or null, if there are no aspects.
-  ///
-  /// [source] is the first celestial point.
-  /// [target] is the second celestial point.
-  /// [arc] angular distance between the objects, in arc-degrees.
-  AspectAndDelta? findClosest(
-      AspectedPoint source, AspectedPoint target, double arc) {
-    AspectAndDelta? closest;
-    for (final asp in Aspect.values) {
-      if (asp.typeFlag.value & typeFlags != 0) {
-        if (orbsMethod.isAspect(source.name, target.name, asp, arc)) {
-          final delta = (asp.value - arc).abs();
-          if (closest == null || closest.delta > delta) {
-            closest = (aspect: asp, delta: delta);
-          }
-        }
-      }
-    }
-    return closest;
-  }
-
-  /// Search aspects from a celestial point [source] to range of points, [targets].
-  /// When aspect is found, the result is yielded.
-  Iterable<AspectInfo> iterAspects(
-      AspectedPoint source, List<AspectedPoint> targets) sync* {
-    for (final target in targets) {
-      double arc = (source.longitude - target.longitude).abs();
-      if (arc > 180) {
-        arc = 360 - arc;
-      }
-      final closest = findClosest(source, target, arc);
-      if (closest != null) {
-        yield (
-          source: source,
-          target: target,
-          aspect: closest.aspect,
-          delta: closest.delta,
-          arc: arc
-        );
-      }
-    }
-  }
-}
- */
-
 /// Find closest aspect between two or null, if there are no aspects.
 ///
 /// * [source] is the first celestial point.
@@ -144,12 +86,12 @@ AspectInfo? findClosestAspect(
     {required ChartObjectInfo source,
     required ChartObjectInfo target,
     OrbsMethod? method,
-    AspectType flags = AspectType.major}) {
+    int flags = 0x1}) {
   method ??= OrbsMethod.getInstance(Orbs.classicWithAspectRatio);
   AspectInfo? closest;
   final arc = shortestArc(source.position.lambda, target.position.lambda);
   for (final asp in Aspect.values) {
-    if (asp.typeFlag.value & flags.value != 0) {
+    if (asp.typeFlag.value & flags != 0) {
       final info =
           method.isAspect(source: source, target: target, asp: asp, arc: arc);
       if (info == null) {
