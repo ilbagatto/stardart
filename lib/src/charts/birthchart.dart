@@ -36,7 +36,7 @@ class BirthChart extends BaseChart {
     final keys = objects.keys.toList();
     for (int i = 0; i < keys.length - 1; i++) {
       final src = objects[keys[i]];
-      for (int j = 0; j < keys.length; j++) {
+      for (int j = i + 1; j < keys.length; j++) {
         final dst = objects[keys[j]];
         final asp = findClosestAspect(
             source: src!,
