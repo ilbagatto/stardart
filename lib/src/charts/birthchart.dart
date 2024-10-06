@@ -62,11 +62,10 @@ class BirthChart extends BaseChart {
 
   @override
   Iterable<(ChartObjectType, AspectInfo)> aspectsTo(ChartObjectType id) {
-    final aspectedObjects = aspects[id];
-    if (aspectedObjects == null) {
-      return [];
+    if (aspects.containsKey(id)) {
+      return aspects[id]!.entries.map((e) => (e.key, e.value));
     }
-    return ChartObjectType.values.map((id) => (id, aspectedObjects[id]!));
+    return Iterable.empty();
   }
 
   CelestialSphera get sphera {
