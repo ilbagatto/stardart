@@ -7,7 +7,6 @@ import 'package:astropc/timeutils.dart';
 import 'package:intl/intl.dart';
 import 'package:stardart/charts.dart';
 import 'package:stardart/houses.dart';
-import 'package:stardart/src/charts/objects.dart';
 import 'package:stardart/utils.dart';
 
 final dateTimeFormatter = DateFormat('yyyy-MM-dd HH:mm');

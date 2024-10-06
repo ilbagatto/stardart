@@ -1,8 +1,6 @@
 import 'package:astropc/mathutils.dart';
 import 'package:stardart/charts.dart';
 import 'package:stardart/common.dart';
-import 'package:stardart/src/charts/chart.dart';
-import 'package:stardart/src/charts/objects.dart';
 
 class ChartStats {
   final Map<Triplicity, List<ChartObjectType>> _triplicities = {

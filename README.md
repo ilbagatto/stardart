@@ -55,8 +55,7 @@ import 'package:stardart/charts.dart';
 final birthChart = BirthChart(
     name: 'Birth Chart',
     djd: julDay(2024, 5, 9.5); // Julian date for epoch 1900.0,
-    place: (name: 'Sofia, Bulgaria', coords: Point(-23.32, 42.698)),
-    settings: settings);
+    place: (name: 'Sofia, Bulgaria', coords: Point(-23.32, 42.698)));
 
 final sun = chart.objects[ChartObjectType.sun]; // Sun
 final lng = sun.position.lambda; // longitude
