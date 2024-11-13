@@ -178,7 +178,7 @@ void main(List<String> arguments) {
       aspectTypes: 0x1
     );
 
-    final birthChart = BirthChart(
+    final birthChart = BaseChart(
         name: 'Birth Chart',
         djd: dateTimeToDjd(civil),
         place: (name: '', coords: Point(geoLon, geoLat)),

@@ -8,7 +8,7 @@ const delta = 1e-6;
 
 void main() {
   group('Chart Stats', () {
-    final chart = BirthChart(
+    final chart = BaseChart(
         name: 'Test Chart',
         djd: 23772.990277,
         place: (name: 'Moscow', coords: Point(-37.58, 55.75)));
