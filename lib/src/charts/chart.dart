@@ -11,8 +11,10 @@ import 'objects.dart';
 import 'package:stardart/src/houses.dart';
 import 'package:vector_math/vector_math.dart';
 
+/// Record for a geographic location.
 typedef Place = ({String name, Point<double> coords});
 
+/// Settings & rules that affect the chart calculation.
 typedef ChartSettings = ({
   HouseSystem houses,
   bool trueNode,
@@ -20,6 +22,7 @@ typedef ChartSettings = ({
   int aspectTypes
 });
 
+/// Default settings.
 const defaultChartSettings = (
   houses: HouseSystem.placidus,
   trueNode: true,
@@ -27,6 +30,7 @@ const defaultChartSettings = (
   aspectTypes: 0x1 // AspectType.major.value
 );
 
+/// Base class for misc. types of charts.
 class BaseChart {
   final double djd;
   final Place place;
@@ -70,11 +74,13 @@ class BaseChart {
     return res;
   }
 
+  /// Lazily calculated aspects.
   Map<ChartObjectType, Map<ChartObjectType, AspectInfo>> get aspects {
     _aspects ??= _calculateAspects();
     return _aspects!;
   }
 
+  /// Aspects to given chart object.
   Iterable<(ChartObjectType, AspectInfo)> aspectsTo(ChartObjectType id) {
     if (aspects.containsKey(id)) {
       return aspects[id]!.entries.map((e) => (e.key, e.value));
@@ -82,14 +88,15 @@ class BaseChart {
     return Iterable.empty();
   }
 
+  /// Lazily calculated CelestialSphera object.
   CelestialSphera get sphera {
     _sphera ??= CelestialSphera(djd);
     return _sphera!;
   }
 
-  /// Local true Sidereal Time
+  /// Local true Sidereal Time, calculated lazily.
   double get siderealTime {
-    _lst = timeutils.djdToSidereal(djd, lng: place.coords.x);
+    _lst ??= timeutils.djdToSidereal(djd, lng: place.coords.x);
     return _lst!;
   }
 
@@ -118,6 +125,7 @@ class BaseChart {
     }
   }
 
+  /// Lazily calculated houses cusps, [0..11].
   List<double> get houses {
     _houses ??= _calculateHouses();
     return _houses!;
@@ -181,25 +189,38 @@ class BaseChart {
     return objs;
   }
 
+  /// Lazily calculated chart objects, defined in ChartObjectType enumeration.
+  /// Currently, these are  Sun, Moon, the 10 planets and Ascending Lunar Node.
   Map<ChartObjectType, ChartObjectInfo> get objects {
     _objects ??= _calculateObjects();
     return _objects!;
   }
 
+  /// Lazily calculated chart sensitive points:
+  ///
+  /// * Ascendant
+  /// * Midheaven
+  /// * Vertex
+  /// * East Point
+  ///
   SensitivePoints get points {
-    final ramc = radians(siderealTime + 15);
-    final eps = radians(sphera.obliquity);
-    final theta = radians(place.coords.y);
-    _points ??= (
-      asc: degrees(ascendant(ramc, eps, theta)),
-      mc: degrees(midheaven(ramc, eps)),
-      vtx: degrees(vertex(ramc, eps, theta)),
-      ep: degrees(eastpoint(ramc, eps))
-    );
+    if (_points == null) {
+      final ramc = radians(siderealTime + 15);
+      final eps = radians(sphera.obliquity);
+      final theta = radians(place.coords.y);
+      _points = (
+        asc: degrees(ascendant(ramc, eps, theta)),
+        mc: degrees(midheaven(ramc, eps)),
+        vtx: degrees(vertex(ramc, eps, theta)),
+        ep: degrees(eastpoint(ramc, eps))
+      );
+    }
+
     return _points!;
   }
 }
 
+/// Birth Chart, Natal Chart, Radix.
 class BirthChart extends BaseChart {
   final DateTime birthTime;
   final String firstName;
@@ -212,4 +233,12 @@ class BirthChart extends BaseChart {
       : super(
             djd: dateTimeToDjd(birthTime),
             name: 'Birth Chart for $firstName $lastName');
+}
+
+/// Generic chart for events.
+class EventChart extends BaseChart {
+  final DateTime eventTime;
+  EventChart(
+      {required super.name, required this.eventTime, required super.place})
+      : super(djd: dateTimeToDjd(eventTime));
 }
