@@ -229,7 +229,8 @@ class BirthChart extends BaseChart {
       {required this.firstName,
       required this.lastName,
       required this.birthTime,
-      required super.place})
+      required super.place,
+      required super.settings})
       : super(
             djd: dateTimeToDjd(birthTime),
             name: 'Birth Chart for $firstName $lastName');
